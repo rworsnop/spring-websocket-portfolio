@@ -13,6 +13,9 @@ function ApplicationModel(stompClient) {
       console.log('Connected ' + frame);
       self.username(frame.headers['user-name']);
 
+      stompClient.subscribe("/queue/messages." + self.username(), function(message) {
+        console.log("Received " + message.body);
+      });
       stompClient.subscribe("/app/positions", function(message) {
         self.portfolio().loadPositions(JSON.parse(message.body));
       });
@@ -112,12 +115,19 @@ function TradeModel(stompClient) {
 
   self.action = ko.observable();
   self.sharesToTrade = ko.observable(0);
+  self.recipient = ko.observable();
+  self.message = ko.observable();
+
   self.currentRow = ko.observable({});
   self.error = ko.observable('');
   self.suppressValidation = ko.observable(false);
 
   self.showBuy  = function(row) { self.showModal('Buy', row) }
   self.showSell = function(row) { self.showModal('Sell', row) }
+
+  self.showChat = function(){
+    $('#chat-dialog').modal();
+  }
 
   self.showModal = function(action, row) {
     self.action(action);
@@ -158,5 +168,13 @@ function TradeModel(stompClient) {
     console.log(trade);
     stompClient.send("/app/trade", {}, JSON.stringify(trade));
     $('#trade-dialog').modal('hide');
+  }
+
+  self.sendChat = function() {
+    var jmessage = {
+        "message" : self.message()
+    };
+    console.log("Sent " + JSON.stringify(jmessage));
+    stompClient.send("/queue/messages." + self.recipient(), {}, JSON.stringify(jmessage))
   }
 }
