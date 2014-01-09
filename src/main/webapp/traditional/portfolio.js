@@ -171,10 +171,11 @@ function TradeModel(stompClient) {
   }
 
   self.sendChat = function() {
-    var jmessage = {
+    var message = {
+        "recipient" : self.recipient(),
         "message" : self.message()
     };
-    console.log("Sent " + JSON.stringify(jmessage));
-    stompClient.send("/queue/messages." + self.recipient(), {}, JSON.stringify(jmessage))
+    console.log("Sent " + JSON.stringify(message));
+    stompClient.send("/app/queue/messages", {}, JSON.stringify(message))
   }
 }

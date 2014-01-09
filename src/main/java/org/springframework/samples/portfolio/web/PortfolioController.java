@@ -21,12 +21,14 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
+import org.springframework.samples.portfolio.service.Message;
 import org.springframework.samples.portfolio.service.PortfolioService;
 import org.springframework.samples.portfolio.service.Trade;
 import org.springframework.samples.portfolio.service.TradeService;
@@ -41,13 +43,15 @@ public class PortfolioController {
 	private final PortfolioService portfolioService;
 
 	private final TradeService tradeService;
+    private final MessageSendingOperations<String> messagingTemplate;
 
 
-	@Autowired
-	public PortfolioController(PortfolioService portfolioService, TradeService tradeService) {
+    @Autowired
+	public PortfolioController(PortfolioService portfolioService, TradeService tradeService, MessageSendingOperations<String> messagingTemplate) {
 		this.portfolioService = portfolioService;
 		this.tradeService = tradeService;
-	}
+        this.messagingTemplate = messagingTemplate;
+    }
 
 	@SubscribeMapping("/positions")
 	public List<PortfolioPosition> getPositions(Principal principal) throws Exception {
@@ -56,14 +60,20 @@ public class PortfolioController {
 		return portfolio.getPositions();
 	}
 
-	@MessageMapping("/trade")
-	public void executeTrade(Trade trade, Principal principal) {
-		trade.setUsername(principal.getName());
-		logger.debug("Trade: " + trade);
-		this.tradeService.executeTrade(trade);
-	}
+    @MessageMapping("/trade")
+    public void executeTrade(Trade trade, Principal principal) {
+        trade.setUsername(principal.getName());
+        logger.debug("Trade: " + trade);
+        this.tradeService.executeTrade(trade);
+    }
 
-	@MessageExceptionHandler
+    @MessageMapping("/queue/messages")
+    public void sendMessage(Message message, Principal principal) {
+        System.out.printf("%s sent %s\n", principal.getName(), message);
+        messagingTemplate.convertAndSend("/queue/messages." + message.getRecipient(), message);
+    }
+
+    @MessageExceptionHandler
 	@SendToUser("/queue/errors")
 	public String handleException(Throwable exception) {
 		return exception.getMessage();
