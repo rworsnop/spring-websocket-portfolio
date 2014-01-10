@@ -13,22 +13,23 @@ function ApplicationModel(stompClient) {
       console.log('Connected ' + frame);
       self.username(frame.headers['user-name']);
 
-      stompClient.subscribe("/user/queue/messages", function(message) {
+      stompClient.subscribe("/exchange/amq.direct/messages." + self.username(), function(message) {
         console.log("Received " + message.body);
       });
+
       stompClient.subscribe("/app/positions", function(message) {
         self.portfolio().loadPositions(JSON.parse(message.body));
       });
       stompClient.subscribe("/topic/price.stock.*", function(message) {
         self.portfolio().processQuote(JSON.parse(message.body));
       });
-      stompClient.subscribe("/user/queue/position-updates", function(message) {
+      /*stompClient.subscribe("/user/queue/position-updates", function(message) {
         self.pushNotification("Position update " + message.body);
         self.portfolio().updatePosition(JSON.parse(message.body));
       });
       stompClient.subscribe("/user/queue/errors", function(message) {
         self.pushNotification("Error " + message.body);
-      });
+      }); */
     }, function(error) {
       console.log("STOMP protocol error " + error);
     });
@@ -176,6 +177,6 @@ function TradeModel(stompClient) {
         "message" : self.message()
     };
     console.log("Sent " + JSON.stringify(message));
-    stompClient.send("/user/"+self.recipient()+"/queue/messages", {}, JSON.stringify(message))
+    stompClient.send("/exchange/amq.direct/messages." + self.recipient(), {}, JSON.stringify(message))
   }
 }
