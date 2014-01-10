@@ -44,14 +44,12 @@ public class PortfolioController {
 	private final PortfolioService portfolioService;
 
 	private final TradeService tradeService;
-    private final MessageSendingOperations<String> messagingTemplate;
 
 
     @Autowired
-	public PortfolioController(PortfolioService portfolioService, TradeService tradeService, MessageSendingOperations<String> messagingTemplate) {
+	public PortfolioController(PortfolioService portfolioService, TradeService tradeService) {
 		this.portfolioService = portfolioService;
 		this.tradeService = tradeService;
-        this.messagingTemplate = messagingTemplate;
     }
 
 	@SubscribeMapping("/positions")
@@ -68,11 +66,7 @@ public class PortfolioController {
         this.tradeService.executeTrade(trade);
     }
 
-    @MessageMapping("/messages.*")
-    public Message sendMessage(Message message, Principal principal) {
-        System.out.printf("%s sent %s\n", principal.getName(), message);
-        return message;
-    }
+
 
     @MessageExceptionHandler
 	@SendToUser("/queue/errors")
