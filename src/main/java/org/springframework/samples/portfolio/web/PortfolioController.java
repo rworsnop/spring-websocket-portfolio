@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -67,10 +68,10 @@ public class PortfolioController {
         this.tradeService.executeTrade(trade);
     }
 
-    @MessageMapping("/queue/messages")
-    public void sendMessage(Message message, Principal principal) {
+    @MessageMapping("/messages.*")
+    public Message sendMessage(Message message, Principal principal) {
         System.out.printf("%s sent %s\n", principal.getName(), message);
-        messagingTemplate.convertAndSend("/queue/messages." + message.getRecipient(), message);
+        return message;
     }
 
     @MessageExceptionHandler
