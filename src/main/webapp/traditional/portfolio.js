@@ -13,7 +13,7 @@ function ApplicationModel(stompClient) {
       console.log('Connected ' + frame);
       self.username(frame.headers['user-name']);
 
-      stompClient.subscribe("/exchange/amq.direct/messages." + self.username(), function(message) {
+      stompClient.subscribe("/exchange/chatuser." + self.username(), function(message) {
         console.log("Received " + message.body);
       });
 
@@ -177,6 +177,6 @@ function TradeModel(stompClient) {
         "message" : self.message()
     };
     console.log("Sent " + JSON.stringify(message));
-    stompClient.send("/exchange/amq.direct/messages." + self.recipient(), {}, JSON.stringify(message))
+    stompClient.send("/exchange/chatuser." + self.recipient(), {}, JSON.stringify(message))
   }
 }
