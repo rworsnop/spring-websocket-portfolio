@@ -4,7 +4,7 @@ function ApplicationModel(stompClient) {
 
   self.username = ko.observable();
   self.portfolio = ko.observable(new PortfolioModel());
-  self.trade = ko.observable(new TradeModel(stompClient));
+  self.trade = ko.observable(new TradeModel(stompClient, self.username));
   self.notifications = ko.observableArray();
 
   self.connect = function() {
@@ -15,6 +15,10 @@ function ApplicationModel(stompClient) {
 
       stompClient.subscribe("/exchange/chatuser." + self.username(), function(message) {
         console.log("Received " + message.body);
+      });
+
+      stompClient.subscribe("/queue/chatarchive", function(message) {
+        console.log("Archiving " + message.body);
       });
 
       stompClient.subscribe("/app/positions", function(message) {
@@ -177,6 +181,6 @@ function TradeModel(stompClient) {
         "message" : self.message()
     };
     console.log("Sent " + JSON.stringify(message));
-    stompClient.send("/exchange/chatuser." + self.recipient(), {}, JSON.stringify(message))
+    stompClient.send("/exchange/chatmessages/" + self.recipient(), {}, JSON.stringify(message))
   }
 }

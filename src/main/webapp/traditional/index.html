@@ -140,8 +140,9 @@
 <script src="portfolio.js"></script>
 <script type="text/javascript">
       (function() {
-        var socket = new SockJS('/spring-websocket-portfolio/portfolio');
-        var stompClient = Stomp.over(socket);
+       // var socket = new SockJS('/spring-websocket-portfolio/portfolio');
+      //  var stompClient = Stomp.over(socket);
+        var stompClient = Stomp.client("ws://20ex15308.airwatch.corp:8080/spring-websocket-portfolio/portfolio");
 
         var appModel = new ApplicationModel(stompClient);
         ko.applyBindings(appModel);
